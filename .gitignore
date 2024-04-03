@@ -1,0 +1,17 @@
+# Directorios
+node_modules/
+build/
+dist/
+coverage/
+
+# Archivos
+.env
+.DS_Store
+*.log
+
+.vscode/
+.idea/
+
+# Archivos de configuración generados automáticamente
+package-lock.json
+yarn.lock
