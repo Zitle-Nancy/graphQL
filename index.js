@@ -1,4 +1,4 @@
-import { gql } from "apollo-server";
+import { ApolloServer, gql } from "apollo-server";
 
 const persons = [
   {
@@ -23,7 +23,7 @@ const persons = [
   },
 ];
 
-const typeDefs = gql`
+const typeDefinitions = gql`
   type Person {
     name: String!
     phone: String
@@ -31,4 +31,35 @@ const typeDefs = gql`
     city: String!
     id: ID!
   }
+
+  type Query {
+    personCount: Int!
+    allPersons: [Person!]
+  }
 `;
+
+const resolvers = {
+  Query: {
+    personCount: () => persons.length,
+    allPersons: () => persons,
+  },
+};
+
+const server = new ApolloServer({
+  typeDefs: typeDefinitions,
+  resolvers,
+});
+
+// iniciar el servidor, run: node index.js
+server.listen().then(({ url }) => {
+  console.log(`Server ready at ${url}`);
+});
+
+// NOTES
+/**
+ *  Query, para definir las peticiones que queremos hacer
+ *  personCount y allPerson son las queries que vamos a utilizar
+ *  se pueden utilizar los types que hemos creado, en este caso Person, en la query de allPersons
+ *  GraphQl tiene dos variantes: las definiciones (typeDefs) y de donde obtiene esos datos (Resolvers)
+ *  Para crear nuestro servidor con apollo debemos pasarle dos parametros (que son palabras reservadas): typeDefs and resolvers
+ * */
