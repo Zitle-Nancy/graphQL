@@ -1,4 +1,6 @@
 import { ApolloServer, gql } from "apollo-server";
+import { GraphQLError } from "graphql";
+import { v1 as uuid } from "uuid";
 
 const persons = [
   {
@@ -41,8 +43,18 @@ const typeDefinitions = gql`
     allPersons: [Person!]
     findPerson(name: String!): Person
   }
+
+  type Mutation {
+    addPerson(
+      name: String!
+      phone: String
+      street: String!
+      city: String!
+    ): Person
+  }
 `;
 
+// Server
 const resolvers = {
   Query: {
     personCount: () => persons.length,
@@ -50,6 +62,22 @@ const resolvers = {
     findPerson: (root, args) => {
       const { name } = args;
       return persons.find((person) => person.name === name);
+    },
+  },
+  Mutation: {
+    addPerson: (root, args) => {
+      if (persons.find((person) => person.name === args.name)) {
+        throw new GraphQLError("Name must be unique", {
+          extensions: {
+            code: "BAD_USER_INPUT",
+            invalidArgs: args.name,
+          },
+        });
+      }
+
+      const person = { ...args, id: uuid() };
+      persons.push(person); // update our person JSON ~ update database with new person
+      return person;
     },
   },
   Person: {
