@@ -56,6 +56,8 @@ const typeDefinitions = gql`
       street: String!
       city: String!
     ): Person
+
+    editNumber(name: String!, phone: String!): Person
   }
 `;
 
@@ -89,6 +91,18 @@ const resolvers = {
       const person = { ...args, id: uuid() };
       persons.push(person); // update our person JSON ~ update database with new person
       return person;
+    },
+    editNumber: (_, args) => {
+      // 1. find the index person
+      const personIndex = persons.findIndex(
+        (person) => person.name === args.name
+      );
+      if (personIndex === -1) return null; // "-1" is the value returned by the findIndex function when it doesn't find anything
+
+      const person = persons[personIndex];
+      const updatedPerson = { ...person, phone: args.phone };
+      persons[personIndex] = updatedPerson; // we're replacing the old value
+      return updatedPerson;
     },
   },
   Person: {
