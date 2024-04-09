@@ -92,6 +92,7 @@ const resolvers = {
     },
   },
   Person: {
+    // we're modifying the original person type of Persons, thanks to root we're creating the address obj
     address: (root) => {
       return {
         street: root.street,
