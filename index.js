@@ -1,6 +1,7 @@
 import { ApolloServer, gql } from "apollo-server";
 import { GraphQLError } from "graphql";
 import { v1 as uuid } from "uuid";
+import axios from "axios";
 
 const persons = [
   {
@@ -65,11 +66,14 @@ const typeDefinitions = gql`
 const resolvers = {
   Query: {
     personCount: () => persons.length,
-    allPersons: (_, args) => {
-      if (!args.phone) return persons;
+    allPersons: async (_, args) => {
+      const { data: PersonsFromRestApi } = await axios.get(
+        "http://localhost:3000/persons"
+      );
+      if (!args.phone) return PersonsFromRestApi;
 
-      return persons.filter((person) => {
-        return args.phone === "YES" ? person.phone : !person.phone;
+      return PersonsFromRestApi.filter((person) => {
+        return args.phone === "YES" ? PersonsFromRestApi.phone : !person.phone;
       });
     },
     findPerson: (root, args) => {
