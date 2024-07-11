@@ -1,25 +1,25 @@
 import { ApolloServer, gql } from "apollo-server";
 import { GraphQLError } from "graphql";
 import { v1 as uuid } from "uuid";
-import axios from "axios";
+// import axios from "axios";
 
 const persons = [
   {
-    name: "Midu",
+    name: "Nancy",
     phone: "034-1234567",
     street: "Calle Frontend",
     city: "Barcelona",
     id: "3d594650-3436-11e9-bc57-8b80ba54c431",
   },
   {
-    name: "Youseff",
+    name: "Un random",
     phone: "044-123456",
     street: "Avenida Fullstack",
     city: "Mataro",
     id: "3d599470-3436-11e9-bc57-8b80ba54c431",
   },
   {
-    name: "Itzi",
+    name: "Pukis",
     street: "Pasaje Testing",
     city: "Ibiza",
     id: "3d599471-3436-11e9-bc57-8b80ba54c431",
@@ -66,14 +66,27 @@ const typeDefinitions = gql`
 const resolvers = {
   Query: {
     personCount: () => persons.length,
-    allPersons: async (_, args) => {
-      const { data: PersonsFromRestApi } = await axios.get(
-        "http://localhost:3000/persons"
-      );
-      if (!args.phone) return PersonsFromRestApi;
 
-      return PersonsFromRestApi.filter((person) => {
-        return args.phone === "YES" ? PersonsFromRestApi.phone : !person.phone;
+    /* NOTE: in this code comment blog we are getting the data from a fake REST_API
+     * but in the others mutations we are using the data from the Person array (line 6)
+
+      allPersons: async (_, args) => {
+       const { data: PersonsFromRestApi } = await axios.get(
+         "http://localhost:3000/persons"
+       );
+       if (!args.phone) return PersonsFromRestApi;
+
+       return PersonsFromRestApi.filter((person) => {
+          return args.phone === "YES" ? PersonsFromRestApi.phone : !person.phone;
+        });
+       },
+    */
+
+    allPersons: (_, args) => {
+      if (!args.phone) return persons;
+
+      return persons.filter((person) => {
+        return args.phone === "YES" ? persons.phone : !person.phone;
       });
     },
     findPerson: (root, args) => {
