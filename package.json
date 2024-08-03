@@ -13,6 +13,9 @@
   "dependencies": {
     "apollo-server": "^3.13.0",
     "graphql": "^16.8.1",
+    "mongodb": "^6.8.0",
+    "mongoose": "8.5.0",
+    "mongoose-unique-validator": "5.0.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
