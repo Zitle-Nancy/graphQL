@@ -1,29 +1,7 @@
-import { ApolloServer, gql } from "apollo-server";
-import { GraphQLError } from "graphql";
-import { v1 as uuid } from "uuid";
+import { ApolloServer, gql, UserInputError } from "apollo-server";
 
-const persons = [
-  {
-    name: "Midu",
-    phone: "034-1234567",
-    street: "Calle Frontend",
-    city: "Barcelona",
-    id: "3d594650-3436-11e9-bc57-8b80ba54c431",
-  },
-  {
-    name: "Youseff",
-    phone: "044-123456",
-    street: "Avenida Fullstack",
-    city: "Mataro",
-    id: "3d599470-3436-11e9-bc57-8b80ba54c431",
-  },
-  {
-    name: "Itzi",
-    street: "Pasaje Testing",
-    city: "Ibiza",
-    id: "3d599471-3436-11e9-bc57-8b80ba54c431",
-  },
-];
+import "./db.js";
+import Person from "./models/person.js";
 
 const typeDefinitions = gql`
   enum YesNo {
@@ -64,45 +42,37 @@ const typeDefinitions = gql`
 // Server
 const resolvers = {
   Query: {
-    personCount: () => persons.length,
-    allPersons: (_, args) => {
-      if (!args.phone) return persons;
-
-      return persons.filter((person) => {
-        return args.phone === "YES" ? person.phone : !person.phone;
-      });
+    personCount: () => Person.collection.countDocuments(),
+    allPersons: async (_, args) => {
+      if (!args.phone) return Person.find({});
+      return Person.find({ phone: { $exists: args.phone === "YES" } });
     },
     findPerson: (root, args) => {
       const { name } = args;
-      return persons.find((person) => person.name === name);
+      return Person.findOne({ name });
     },
   },
   Mutation: {
     addPerson: (root, args) => {
-      if (persons.find((person) => person.name === args.name)) {
-        throw new GraphQLError("Name must be unique", {
-          extensions: {
-            code: "BAD_USER_INPUT",
-            invalidArgs: args.name,
-          },
+      const person = new Person({ ...args });
+      return person.save();
+    },
+    editNumber: async (_, args) => {
+      const person = await Person.findOne({ name: args.name });
+      // keep in main if we need to return null
+      if (!person) return null;
+
+      person.phone = args.phone;
+
+      try {
+        await person.save();
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: args,
         });
       }
 
-      const person = { ...args, id: uuid() };
-      persons.push(person); // update our person JSON ~ update database with new person
       return person;
-    },
-    editNumber: (_, args) => {
-      // 1. find the index person
-      const personIndex = persons.findIndex(
-        (person) => person.name === args.name
-      );
-      if (personIndex === -1) return null; // "-1" is the value returned by the findIndex function when it doesn't find anything
-
-      const person = persons[personIndex];
-      const updatedPerson = { ...person, phone: args.phone };
-      persons[personIndex] = updatedPerson; // we're replacing the old value
-      return updatedPerson;
     },
   },
   Person: {
